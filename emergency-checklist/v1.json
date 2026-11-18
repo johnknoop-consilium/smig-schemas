@@ -43,6 +43,8 @@
           "minItems": 1,
           "description": "The items in the order they appear in the chapter.",
           "items": {
+            "type": "object",
+            "discriminator": { "propertyName": "type" },
             "oneOf": [
               { "$ref": "#/definitions/task" },
               { "$ref": "#/definitions/decision" },
@@ -85,10 +87,10 @@
           "minItems": 1,
           "description": "The possible answers. Write an answer as a plain string when it only has a title, or as an object when it has details, jumps to a chapter or disables items.",
           "items": {
-            "oneOf": [
-              { "type": "string", "description": "Title of the answer, e.g. 'Yes'." },
-              { "$ref": "#/definitions/option" }
-            ]
+            "type": ["string", "object"],
+            "description": "An answer: its title as a string, e.g. 'Yes', or an object with details.",
+            "if": { "type": "object" },
+            "then": { "$ref": "#/definitions/option" }
           }
         }
       }
