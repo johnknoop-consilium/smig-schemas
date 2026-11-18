@@ -1,0 +1,129 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://johnknoop-consilium.github.io/smig-schemas/emergency-checklist/v1.json",
+  "title": "SMIG emergency checklist",
+  "description": "An emergency checklist that can be imported into SMIG (Settings > Emergency checklists > Import). A checklist is an ordered list of chapters; each chapter is an ordered list of items. Items are tasks to tick off, decisions with options to choose between, and a button that completes the whole checklist. Besides the rules in this schema, SMIG requires that at least one chapter contains a Completion item, and that every chapter or item title referenced from an option's 'proceedToChapter' or 'disables' matches exactly one chapter or item.",
+  "type": "object",
+  "required": ["name", "chapters"],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "description": "URL of this schema, so that editors can offer completion and validation."
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Name of the checklist, typically the emergency it is for, e.g. 'Fire in engine room'."
+    },
+    "description": {
+      "type": "string",
+      "description": "Optional short description of when to use the checklist."
+    },
+    "chapters": {
+      "type": "array",
+      "minItems": 1,
+      "description": "The chapters in the order they are worked through.",
+      "items": { "$ref": "#/definitions/chapter" }
+    }
+  },
+  "definitions": {
+    "chapter": {
+      "type": "object",
+      "description": "A group of items, e.g. a numbered section or phase of the procedure.",
+      "required": ["title", "items"],
+      "additionalProperties": false,
+      "properties": {
+        "title": {
+          "type": "string",
+          "description": "Chapter title. Options refer to chapters by this title, so it must be unique if referenced."
+        },
+        "items": {
+          "type": "array",
+          "minItems": 1,
+          "description": "The items in the order they appear in the chapter.",
+          "items": {
+            "oneOf": [
+              { "$ref": "#/definitions/task" },
+              { "$ref": "#/definitions/decision" },
+              { "$ref": "#/definitions/completion" }
+            ]
+          }
+        }
+      }
+    },
+    "task": {
+      "type": "object",
+      "description": "A step that the operator carries out and ticks off.",
+      "required": ["type", "title"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "const": "Task" },
+        "title": {
+          "type": "string",
+          "description": "Short instruction, e.g. 'Close fire doors'. Options refer to items by this title, so it must be unique if referenced."
+        },
+        "text": {
+          "type": "string",
+          "description": "Optional details or explanation shown under the title."
+        }
+      }
+    },
+    "decision": {
+      "type": "object",
+      "description": "A question where the operator picks one of several options, e.g. 'Is the fire contained?'.",
+      "required": ["type", "title", "options"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "const": "Decision" },
+        "title": {
+          "type": "string",
+          "description": "The question. Options refer to items by this title, so it must be unique if referenced."
+        },
+        "options": {
+          "type": "array",
+          "minItems": 1,
+          "description": "The possible answers. Write an answer as a plain string when it only has a title, or as an object when it has details, jumps to a chapter or disables items.",
+          "items": {
+            "oneOf": [
+              { "type": "string", "description": "Title of the answer, e.g. 'Yes'." },
+              { "$ref": "#/definitions/option" }
+            ]
+          }
+        }
+      }
+    },
+    "option": {
+      "type": "object",
+      "description": "An answer to a decision with details or consequences.",
+      "required": ["title"],
+      "additionalProperties": false,
+      "properties": {
+        "title": { "type": "string", "description": "Title of the answer, e.g. 'No'." },
+        "text": { "type": "string", "description": "Optional details shown with the answer." },
+        "proceedToChapter": {
+          "type": "string",
+          "description": "Title of the chapter to continue with when this answer is chosen, e.g. for 'If no, go to section 4'."
+        },
+        "disables": {
+          "type": "array",
+          "description": "Titles of the tasks, decisions or completion buttons that no longer apply when this answer is chosen.",
+          "items": { "type": "string" }
+        }
+      }
+    },
+    "completion": {
+      "type": "object",
+      "description": "The button that marks the whole checklist as completed, usually the last item of the last chapter.",
+      "required": ["type", "button"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "const": "Completion" },
+        "button": {
+          "type": "string",
+          "description": "Label of the button, e.g. 'Complete checklist'. Options refer to this item by this label."
+        }
+      }
+    }
+  }
+}
